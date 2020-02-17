@@ -3,53 +3,106 @@ import numpy as np
 import matplotlib.pyplot as plt
 from itertools import cycle
 import matplotlib.colors
-import tkinter
+from tkinter import *
+from matplotlib import animation
+from tkinter import colorchooser
 
 
-def fractal(realMin, realMax, imaginaryMin, imaginaryMax, realPoints, imaginaryPoints, max_iterations,
-            maxInfinityNumber):
+def fractal(real_min, real_max, imaginary_min, imaginary_max, real_points, imaginary_points, max_iterations=200,
+            max_infinity_number=10):
     image = np.zeros((realPoints, imaginaryPoints))
-    realPart, imaginaryPart = np.mgrid[realMin:realMax:(realPoints * 1j),
-                              imaginaryMin:imaginaryMax:(imaginaryPoints * 1j)]
+    real_part, imaginary_part = np.mgrid[real_min:real_max:(real_points * 1j),
+                                imaginary_min:imaginary_max:(imaginary_points * 1j)]
 
-    complexNumber = realPart + 1j * imaginaryPart
-    newComplex = np.zeros_like(complexNumber)
+    complex_number = real_part + 1j * imaginary_part
+    new_complex = np.zeros_like(complex_number)
 
     for i in range(max_iterations):
-        newComplex = newComplex ** 2 + complexNumber
+        new_complex = new_complex ** 2 + complex_number
 
-        mask = (np.abs(newComplex) > maxInfinityNumber) & (image == 0)
+        mask = (np.abs(new_complex) > max_infinity_number) & (image == 0)
 
         image[mask] = i
 
-        newComplex[mask] = np.nan
+        new_complex[mask] = np.nan
     return -image.T
 
+
+def init():
+    return plt.gca()
+
+
+def animation(i):
+    if i > maxFrames // 2:
+        plt.imshow(images[maxFrames // 2 - i])
+        print(i)
+        return
+    real_center = -0.793191078177363
+    imaginary_center = 0.16093721735804
+
+    zoom = (i / maxFrames * 2) ** 3 * maxZoom + 1
+    scale = 1 / zoom
+    new_real_min = (realMin - real_center) * scale + real_center
+    new_imaginary_min = (imaginaryMin - imaginary_center) * scale + imaginary_center
+    new_real_max = (realMax - real_center) * scale + real_center
+    new_imaginary_max = (imaginaryMax - imaginary_center) * scale + imaginary_center
+
+    image = fractal(new_real_min, new_real_max, new_imaginary_min, new_imaginary_max, realPoints, imaginaryPoints)
+    plt.imshow(image, cmap='flag')
+    images.append(image)
+    print(i)
+    return plt.gca()
+
+
+def get_gif():
+    anim = matplotlib.animation.FuncAnimation(figure, animation, init_func=init, frames=maxFrames, interval=50)
+    anim.save('myGif.gif', writer=writer)
+
+
+def get_picture():
+    image = fractal(realMin, realMax, imaginaryMin, imaginaryMax, realPoints, imaginaryPoints, max_iterations,
+                    maxInfinityNumber)
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(image, cmap='flag', interpolation='none')
+    plt.show()
+
+def update_frames(index):
+    if index > maxFrames - 1:
+        index = 0
+    frame = gif_frames[index]
+    index += 1
+    label.configure(image=frame)
+    label.after(100, update_frames, index)
+
+# Writer settings
+writer = matplotlib.animation.ImageMagickWriter(fps=5, metadata=dict(artist='Me'), bitrate=1800)
 
 # Settings for image
 realMin = -2.5
 realMax = 1.5
 imaginaryMin = -2
 imaginaryMax = 2
-realPoints = 200
-imaginaryPoints = 200
+realPoints = 1000
+imaginaryPoints = 1000
 max_iterations = 200
 maxInfinityNumber = 10
 
-# ImShow
-plt.figure(figsize=(10, 10))
+# Animation settings
+figure = plt.figure(figsize=(10, 10))
+maxFrames = 10
+maxZoom = 300
+images = []
 
-image = fractal(realMin, realMax, imaginaryMin, imaginaryMax, realPoints, imaginaryPoints, max_iterations,
-                maxInfinityNumber)
-plt.xticks([])
-plt.yticks([])
-# plt.imshow(image, cmap='flag', interpolation='none')
-# plt.show()
 
-# Window
-root = tkinter.Tk()
-root.geometry('600x400+200+100')
-c = tkinter.Canvas(root)
-c.pack()
-c.create_image(image=image)
+# Tkinter settings
+root = Tk()
+
+gif_frames = [PhotoImage(master=root, file=r'C:\Users\ukolo\PycharmProjects\fractlas\mygif.gif', format='gif -index %i' % (i)) for i
+              in range(maxFrames)]
+print(len(gif_frames))
+label = Label(root)
+label.pack()
+root.after(0, update_frames, 0)
+colorchooser.askcolor()
 root.mainloop()
