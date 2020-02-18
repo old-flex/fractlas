@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from itertools import cycle
+import matplotlib.colors as clr
 import matplotlib.colors
 from tkinter import *
 from matplotlib import animation
@@ -64,7 +65,7 @@ def get_picture():
                     maxInfinityNumber)
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(image, cmap='flag', interpolation='none')
+    plt.imshow(image, cmap=cmap, interpolation='none')
     plt.show()
 
 
@@ -74,12 +75,38 @@ def update_frames(index):
     frame = gif_frames[index]
     index += 1
     label.configure(image=frame)
-    label.after(10, update_frames, index)
+    label.after(50, update_frames, index)
 
 
-def choose_color():
-    a = colorchooser.askcolor()
-    print(a[1])
+def choose_color1():
+    a = colorchooser.askcolor()[1]
+    global color1
+    color1 = a
+    color_button.config(background=color1)
+
+    global cmap
+
+    colorpoints = [(1 - (1 - q) ** 4, c) for q, c in zip(np.linspace(0, 1, 20),
+                                                         cycle([color1, '#000000',
+                                                                color2, ]))]
+    cmap = clr.LinearSegmentedColormap.from_list('mycmap',
+                                                 colorpoints, N=2048)
+
+
+def choose_color2():
+    a = colorchooser.askcolor()[1]
+    global color2
+    color2 = a
+    color_button_two.config(background=color2)
+
+    global cmap
+
+    colorpoints = [(1 - (1 - q) ** 4, c) for q, c in zip(np.linspace(0, 1, 20),
+                                                         cycle([color1, '#000000',
+                                                                color2, ]))]
+    cmap = clr.LinearSegmentedColormap.from_list('mycmap',
+                                                 colorpoints, N=2048)
+
 
 def tkinter_window():
     global label
@@ -99,11 +126,23 @@ def tkinter_window():
         PhotoImage(master=root, file=r'C:\Users\ukolo\PycharmProjects\fractlas\mygif.gif', format='gif -index %i' % (i))
         for i in range(maxFrames)]
 
-    color_button = Button(text='Выбор цвета', command=choose_color, master=root)
+    global color_button
+    color_button = Button(text='Выбор цвета 2', command=choose_color1, master=root, background=color1)
     color_button.place(x=300, y=350)
-    # label = Label(root)
-    # label.pack()
-    #root.after(0, update_frames, 0)
+
+    global color_button_two
+    color_button_two = Button(text='Выбор цвета 1', command=choose_color2, master=root, background=color2)
+    color_button_two.place(x=200, y=350)
+
+    image_button = Button(text='Получить картинку', command=get_picture, master=root)
+    image_button.place(x=10, y=350)
+
+    gif_button = Button(text='Получить новую гиф', command=get_gif, master=root)
+    gif_button.place(x=10, y=320)
+
+    label = Label(root, width=380, height=300)
+    label.place(x=10, y=0)
+    root.after(0, update_frames, 0)
     root.mainloop()
 
 
@@ -121,6 +160,11 @@ max_iterations = 200
 maxInfinityNumber = 10
 
 # Animation settings
+color1 = '#309fcf'
+color2 = '#cf30bc'
+
+
+
 figure = plt.figure(figsize=(10, 10))
 maxFrames = 20
 maxZoom = 10
