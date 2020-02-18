@@ -34,7 +34,7 @@ def init():
 
 def animation(i):
     if i > maxFrames // 2:
-        plt.imshow(images[maxFrames // 2 - i])
+        plt.imshow(images[maxFrames // 2 - i], cmap='flag')
         print(i)
         return
     real_center = -0.793191078177363
@@ -67,13 +67,45 @@ def get_picture():
     plt.imshow(image, cmap='flag', interpolation='none')
     plt.show()
 
+
 def update_frames(index):
     if index > maxFrames - 1:
         index = 0
     frame = gif_frames[index]
     index += 1
     label.configure(image=frame)
-    label.after(100, update_frames, index)
+    label.after(10, update_frames, index)
+
+
+def choose_color():
+    a = colorchooser.askcolor()
+    print(a[1])
+
+def tkinter_window():
+    global label
+    global gif_frames
+
+    root = Tk()
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
+
+    width = width // 2 - 200
+    height = height // 2 - 200
+
+    root.geometry('400x400+{}+{}'.format(width, height))
+    root.title('Редактор скринсейвера')
+
+    gif_frames = [
+        PhotoImage(master=root, file=r'C:\Users\ukolo\PycharmProjects\fractlas\mygif.gif', format='gif -index %i' % (i))
+        for i in range(maxFrames)]
+
+    color_button = Button(text='Выбор цвета', command=choose_color, master=root)
+    color_button.place(x=300, y=350)
+    # label = Label(root)
+    # label.pack()
+    #root.after(0, update_frames, 0)
+    root.mainloop()
+
 
 # Writer settings
 writer = matplotlib.animation.ImageMagickWriter(fps=5, metadata=dict(artist='Me'), bitrate=1800)
@@ -90,19 +122,8 @@ maxInfinityNumber = 10
 
 # Animation settings
 figure = plt.figure(figsize=(10, 10))
-maxFrames = 10
-maxZoom = 300
+maxFrames = 20
+maxZoom = 10
 images = []
 
-
-# Tkinter settings
-root = Tk()
-
-gif_frames = [PhotoImage(master=root, file=r'C:\Users\ukolo\PycharmProjects\fractlas\mygif.gif', format='gif -index %i' % (i)) for i
-              in range(maxFrames)]
-print(len(gif_frames))
-label = Label(root)
-label.pack()
-root.after(0, update_frames, 0)
-colorchooser.askcolor()
-root.mainloop()
+tkinter_window()
