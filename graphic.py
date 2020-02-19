@@ -7,10 +7,10 @@ import matplotlib.colors
 from tkinter import *
 from matplotlib import animation
 from tkinter import colorchooser
-
+from numba import jit
 
 def fractal(real_min, real_max, imaginary_min, imaginary_max, real_points, imaginary_points, max_iterations=200,
-            max_infinity_number=10):
+            max_infinity_number=4):
     image = np.zeros((realPoints, imaginaryPoints))
     real_part, imaginary_part = np.mgrid[real_min:real_max:(real_points * 1j),
                                 imaginary_min:imaginary_max:(imaginary_points * 1j)]
@@ -123,8 +123,7 @@ def tkinter_window():
     root.title('Редактор скринсейвера')
 
     gif_frames = [
-        PhotoImage(master=root, file=r'C:\Users\ukolo\PycharmProjects\fractlas\mygif.gif', format='gif -index %i' % (i))
-        for i in range(maxFrames)]
+        PhotoImage(master=root, file=r'C:\Users\ukolo\PycharmProjects\fractlas\mygif.gif', format='gif -index %i' % (i)) for i in range(maxFrames)]
 
     global color_button
     color_button = Button(text='Выбор цвета 2', command=choose_color1, master=root, background=color1)
@@ -163,11 +162,16 @@ maxInfinityNumber = 10
 color1 = '#309fcf'
 color2 = '#cf30bc'
 
+colorpoints = [(1 - (1 - q) ** 4, c) for q, c in zip(np.linspace(0, 1, 20),
+                                                         cycle([color1, '#000000',
+                                                                color2, ]))]
+cmap = clr.LinearSegmentedColormap.from_list('mycmap',
+                                                 colorpoints, N=2048)
 
 
 figure = plt.figure(figsize=(10, 10))
-maxFrames = 20
-maxZoom = 10
+maxFrames = 30
+maxZoom = 300
 images = []
 
 tkinter_window()
